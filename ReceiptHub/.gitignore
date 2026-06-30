@@ -1,0 +1,17 @@
+node_modules/
+
+# Segredos — nunca devem ir para o repositório
+.env
+.env.local
+.env.*.local
+
+# Base de dados local (contém dados reais de utilizadores)
+backend/receiptHub.db
+
+# Ficheiros de configuração local das CLIs
+.vercel/
+.netlify/
+
+# Logs
+*.log
+npm-debug.log*

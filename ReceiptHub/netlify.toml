@@ -1,0 +1,44 @@
+[build]
+  publish = "frontend"
+  functions = "netlify/functions"
+  command = "npm install && npm install --prefix backend"
+
+[[redirects]]
+  from = "/auth/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/products"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/products/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/clients"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/clients/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/sales"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/sales/*"
+  to = "/.netlify/functions/api"  
+  status = 200
+
+[[redirects]]
+  from = "/backup/*"
+  to = "/.netlify/functions/api"
+  status = 200

@@ -1,0 +1,8 @@
+/auth/*       /.netlify/functions/api    200
+/products     /.netlify/functions/api    200
+/products/*   /.netlify/functions/api    200
+/clients      /.netlify/functions/api    200
+/clients/*    /.netlify/functions/api    200
+/sales        /.netlify/functions/api    200
+/sales/*      /.netlify/functions/api    200
+/backup/*     /.netlify/functions/api    200

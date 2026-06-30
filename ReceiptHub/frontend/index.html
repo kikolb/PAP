@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Faturação Profissional</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='70' font-size='70' text-anchor='middle' fill='%232d5b42'%3E€%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="api.js"></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+
+<div class="top-strip">
+    <div class="top-strip-brand"><span class="brand-icon">🧾</span> ReceiptHub</div>
+    <button id="themeToggle" class="btn-outline">🌓 Tema</button>
+</div>
+
+<div id="loginScreen" class="login-wrapper">
+    <div class="login-brand">
+        <div class="login-brand-icon">🧾</div>
+        <h1>ReceiptHub</h1>
+        <p>Faturação simples, rápida e profissional para o teu negócio.</p>
+        <ul class="login-features">
+            <li><span class="feature-icon">🛒</span> Venda rápida com carrinho e talão instantâneo</li>
+            <li><span class="feature-icon">📦</span> Gestão de produtos, stock e clientes</li>
+            <li><span class="feature-icon">📊</span> Dashboard com estatísticas em tempo real</li>
+            <li><span class="feature-icon">🔒</span> Dados protegidos por conta e sessão segura</li>
+        </ul>
+    </div>
+    <div class="login-form-area">
+        <div class="card login-card">
+            <h2>Acesso ao Sistema</h2>
+            <input type="text" id="loginUser" placeholder="Utilizador" autocomplete="off">
+            <input type="password" id="loginPass" placeholder="Palavra-passe">
+            <input type="email" id="loginEmail" placeholder="Email" autocomplete="off">
+            <input type="text" id="companyName" placeholder="Nome da empresa">
+            <select id="accountType">
+                <option value="restaurante">Restaurante</option>
+                <option value="loja">Loja</option>
+                <option value="servicos">Serviços</option>
+            </select>
+            <button id="doLoginBtn" class="btn" style="width:100%">Entrar / Criar conta</button>
+            <hr>
+            <h3>Utilizadores existentes</h3>
+            <div id="userListContainer" style="max-height: 200px; overflow-y: auto;"></div>
+            <button id="demoDataBtn" class="btn btn-secondary" style="margin-top:1rem; width:100%">Carregar dados exemplo</button>
+            <button id="resetAllBtn" class="btn btn-danger" style="margin-top:0.5rem; width:100%">Reiniciar sistema</button>
+        </div>
+    </div>
+</div>
+
+<div id="appScreen" class="app-shell" style="display: none;">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <span class="brand-icon">🧾</span>
+            <span class="sidebar-brand-text">ReceiptHub</span>
+        </div>
+        <nav class="sidebar-nav" id="mainTabs">
+            <button class="tab-btn active" data-tab="venda"><span class="nav-icon">🛒</span><span>Venda Rápida</span></button>
+            <button class="tab-btn" data-tab="historico"><span class="nav-icon">📋</span><span>Histórico</span></button>
+            <button class="tab-btn" data-tab="clientes"><span class="nav-icon">👥</span><span>Clientes</span></button>
+            <button class="tab-btn" data-tab="dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+            <button class="tab-btn" data-tab="config"><span class="nav-icon">⚙️</span><span>Configuração</span></button>
+        </nav>
+        <div class="sidebar-footer">
+            <button id="usersBtn" class="sidebar-link"><span class="nav-icon">👤</span> Utilizadores</button>
+            <button id="logoutBtn" class="sidebar-link"><span class="nav-icon">🔁</span> Trocar conta</button>
+        </div>
+    </aside>
+
+    <div class="main-area">
+        <button id="sidebarToggle" class="sidebar-toggle-btn">☰ Menu</button>
+
+        <div class="container">
+            <div id="tabVenda" class="tab-pane active">
+                <div class="grid-2">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between;">
+                            <h3>🛒 Produtos</h3>
+                            <button id="addProductBtn" class="btn">+ Adicionar</button>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; margin:1rem 0;">
+                            <input type="text" id="searchProd" placeholder="Pesquisar...">
+                            <button id="clearSearchBtn" class="btn btn-secondary">Limpar</button>
+                        </div>
+                        <div id="filterChips" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;"></div>
+                        <div id="prodGrid" class="produtos-grid"></div>
+                        <div id="prodPagination" class="pagination"></div>
+                    </div>
+                    <div class="card">
+                        <h3>🧺 Carrinho</h3>
+                        <div id="clientInfo">Cliente: <strong>Não associado</strong></div>
+                        <button id="selectClientBtn" class="btn btn-secondary" style="width:100%; margin:0.5rem 0;">Associar Cliente</button>
+                        <label>Desconto (%)</label>
+                        <input type="number" id="discountInput" value="0" min="0" max="100">
+                        <div id="paymentMethods" style="display:flex; gap:0.5rem; margin:0.5rem 0;">
+                            <div data-method="dinheiro" class="btn-outline" style="flex:1; text-align:center; padding:0.5rem;">💵 Dinheiro</div>
+                            <div data-method="multibanco" class="btn-outline" style="flex:1; text-align:center;">💳 Multibanco</div>
+                            <div data-method="mbway" class="btn-outline" style="flex:1; text-align:center;">📱 MB Way</div>
+                        </div>
+                        <div id="cartItemsList" style="max-height: 250px; overflow-y: auto; margin:1rem 0;"></div>
+                        <div class="text-right" style="font-size:1.5rem; font-weight:bold;">Total: <span id="cartTotal">0.00</span> EUR</div>
+                        <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                            <button id="checkoutBtn" class="btn" style="flex:2">Finalizar Venda</button>
+                            <button id="clearCartBtn" class="btn btn-danger" style="flex:1">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabHistorico" class="tab-pane">
+                <div class="card">
+                    <h3>📋 Histórico de Vendas</h3>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+                        <input type="date" id="histStart"><input type="date" id="histEnd">
+                        <select id="histMethod"><option value="">Todos</option><option value="dinheiro">Dinheiro</option><option value="multibanco">Multibanco</option><option value="mbway">MB Way</option></select>
+                        <button id="exportExcelBtn" class="btn btn-success">Exportar Excel</button>
+                        <button id="clearHistBtn" class="btn btn-secondary">Limpar filtros</button>
+                    </div>
+                    <div style="max-height:500px; overflow-y:auto;">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead><tr><th>ID</th><th>Data</th><th>Cliente</th><th>Método</th><th>Total</th><th>Ações</th></tr></thead>
+                            <tbody id="histTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabClientes" class="tab-pane">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between;"><h3>👥 Clientes</h3><button id="addClientBtn" class="btn">+ Novo Cliente</button></div>
+                    <div id="clientsGrid" class="produtos-grid" style="margin-top:1rem;"></div>
+                </div>
+            </div>
+
+            <div id="tabDashboard" class="tab-pane">
+                <div class="card">
+                    <div class="kpi-grid">
+                        <div class="card kpi-card">
+                            <h4>💰 Faturação Total</h4>
+                            <div class="stat-value" id="totalRevenue">0 EUR</div>
+                            <span class="kpi-trend" id="revenueTrend"></span>
+                        </div>
+                        <div class="card kpi-card">
+                            <h4>🎯 Vendas Hoje</h4>
+                            <div class="stat-value" id="todaySales">0</div>
+                            <span class="kpi-trend" id="salesTrend"></span>
+                        </div>
+                        <div class="card kpi-card">
+                            <h4>🧾 Ticket Médio</h4>
+                            <div class="stat-value" id="avgTicket">0 EUR</div>
+                        </div>
+                        <div class="card kpi-card">
+                            <h4>⚠️ Stock Baixo</h4>
+                            <div class="stat-value" id="lowStockCount">0</div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-box">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <canvas id="paymentValueChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="widgets-grid">
+                        <div class="card widget-card">
+                            <h4>⚠️ Stock Baixo</h4>
+                            <div id="lowStockList" class="widget-list"></div>
+                        </div>
+                        <div class="card widget-card">
+                            <h4>🧾 Últimas Vendas</h4>
+                            <div id="recentSalesList" class="widget-list"></div>
+                        </div>
+                        <div class="card widget-card">
+                            <h4>🏆 Top Clientes</h4>
+                            <div id="topClientsList" class="widget-list"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:1.5rem;">
+                        <h4>📑 Relatório Consolidado</h4>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;"><input type="date" id="reportStart"><input type="date" id="reportEnd"><button id="generateReportBtn" class="btn">Gerar</button><button id="pdfReportBtn" class="btn btn-success">PDF</button></div>
+                        <div id="reportContent" style="margin-top:1rem;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabConfig" class="tab-pane">
+                <div class="card">
+                    <h3>⚙️ Preferências</h3>
+                    <label><input type="checkbox" id="soundPref"> Sons</label>
+                    <label><input type="checkbox" id="confirmPref"> Confirmar vendas</label>
+                    <hr>
+                    <h4>EmailJS (envio real de faturas)</h4>
+                    <p>Remetente fixo: <strong>PAP.csm.2026@gmail.com</strong> (configurar no EmailJS)</p>
+                    <input type="text" id="emailjsUserId" placeholder="User ID">
+                    <input type="text" id="emailjsService" placeholder="Service ID">
+                    <input type="text" id="emailjsTemplate" placeholder="Template ID">
+                    <button id="saveEmailConfigBtn" class="btn">Guardar configuração</button>
+                    <hr>
+                    <h4>Backup e Manutenção</h4>
+                    <button id="exportBackupBtn" class="btn">Exportar Backup</button>
+                    <label><input type="file" id="importBackupFile" accept=".json" style="display:none;"></label>
+                    <button id="importBackupBtn" class="btn btn-secondary">Importar Backup</button>
+                    <button id="cleanOldBtn" class="btn btn-danger">Limpar vendas antigas</button>
+                    <button id="optimizeBtn" class="btn btn-secondary">Otimizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="productModal" class="modal"><div class="modal-content"><h3 id="productModalTitle">Produto</h3><input id="prodName" placeholder="Nome"><input id="prodCat" placeholder="Categoria"><input id="prodPrice" type="number" step="0.01" placeholder="Preço"><select id="prodVat"><option value="23">IVA 23%</option><option value="13">IVA 13%</option><option value="6">IVA 6%</option><option value="0">Isento</option></select><input id="prodStock" type="number" placeholder="Stock"><textarea id="prodDesc" placeholder="Descrição"></textarea><div style="display:flex; gap:0.5rem;"><button id="saveProductBtn" class="btn">Guardar</button><button id="closeProductModal" class="btn btn-secondary">Cancelar</button></div></div></div>
+<div id="clientModal" class="modal"><div class="modal-content"><h3 id="clientModalTitle">Cliente</h3><input id="clientName" placeholder="Nome"><input id="clientNif" placeholder="NIF"><input id="clientEmail" type="email" placeholder="Email"><input id="clientPhone" placeholder="Telefone"><textarea id="clientAddress" placeholder="Morada"></textarea><div style="display:flex; gap:0.5rem;"><button id="saveClientBtn" class="btn">Guardar</button><button id="closeClientModal" class="btn btn-secondary">Cancelar</button></div></div></div>
+<div id="selectClientModal" class="modal"><div class="modal-content"><h3>Selecionar Cliente</h3><input id="searchClientSelect" placeholder="Pesquisar"><div id="clientSelectList" style="max-height:200px; overflow-y:auto; margin:1rem 0;"></div><button id="clearClientSaleBtn" class="btn btn-secondary">Remover Cliente</button><button id="closeSelectClientModal" class="btn btn-secondary">Fechar</button></div></div>
+<div id="receiptModal" class="modal"><div class="modal-content"><h3>Talão de Venda</h3><div id="receiptContent"></div><div style="display:flex; gap:0.5rem; margin-top:1rem;"><button id="printReceiptBtn" class="btn">Imprimir</button><button id="emailReceiptBtn" class="btn btn-secondary">Enviar Email</button><button id="copyReceiptBtn" class="btn btn-secondary">Copiar</button><button id="closeReceiptBtn" class="btn btn-secondary">Fechar</button></div></div></div>
+<div id="emailModal" class="modal"><div class="modal-content"><h3>Enviar Fatura por Email</h3><input id="emailTo" type="email" placeholder="Email do destinatário"><input id="emailSubject" placeholder="Assunto"><textarea id="emailMessage" rows="3" placeholder="Mensagem"></textarea><div id="emailPreviewHTML" style="background:var(--surface-hover); padding:0.5rem; border-radius:8px; margin-bottom:0.5rem;"></div><div style="display:flex; gap:0.5rem;"><button id="sendEmailBtn" class="btn">Enviar</button><button id="copyReceiptTextBtn" class="btn btn-secondary">Copiar fatura</button><button id="closeEmailModal" class="btn btn-secondary">Fechar</button></div></div></div>
+<div id="helpModal" class="modal"><div class="modal-content"><h3>Atalhos de teclado</h3><ul><li><kbd>Ctrl+N</kbd> Nova venda</li><li><kbd>Ctrl+F</kbd> Finalizar</li><li><kbd>Ctrl+S</kbd> Guardar (em modais)</li><li><kbd>Esc</kbd> Fechar modal</li><li><kbd>F1</kbd> Ajuda</li></ul><button id="closeHelpBtn" class="btn">Fechar</button></div></div>
+<div id="toastContainer" class="toast-container"></div>
+</body>
+</html>
