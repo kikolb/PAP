@@ -12,7 +12,12 @@ if (process.env.DATABASE_URL) {
     // ──────────────────────────────────────────────
     // POSTGRESQL  (Vercel / Neon)
     // ──────────────────────────────────────────────
-    const { Pool } = require('pg');
+    const { Pool, types } = require('pg');
+
+    // pg returns NUMERIC/DECIMAL columns (price, vat, totals...) as strings by
+    // default to avoid precision loss. Parse them as floats so the frontend
+    // can call .toFixed() etc. directly, matching sqlite3's numeric behavior.
+    types.setTypeParser(1700, val => val === null ? null : parseFloat(val));
 
     const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
