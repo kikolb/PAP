@@ -1,5 +1,5 @@
 // Dual-mode database layer:
-//   DATABASE_URL set  → PostgreSQL via pg (Vercel / Neon)
+//   DATABASE_URL set  → PostgreSQL via pg (Neon)
 //   DATABASE_URL unset → SQLite via sqlite3 (local dev)
 //
 // The pgify() helper converts SQLite's ? placeholders to PostgreSQL's $1, $2 ...
@@ -10,7 +10,7 @@ require('dotenv').config();
 
 if (process.env.DATABASE_URL) {
     // ──────────────────────────────────────────────
-    // POSTGRESQL  (Vercel / Neon)
+    // POSTGRESQL  (Neon)
     // ──────────────────────────────────────────────
     const { Pool, types } = require('pg');
 

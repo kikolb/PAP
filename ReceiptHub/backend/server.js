@@ -545,7 +545,7 @@ if (require.main === module) {
         process.exit(1);
     });
 } else {
-    // Importado como módulo (Vercel serverless): exporta o handler Express.
-    // A inicialização da BD é feita pelo api/index.js antes do primeiro pedido.
+    // Importado como módulo (Netlify Functions): exporta o handler Express.
+    // A inicialização da BD é feita pelo netlify/functions/api.js antes do primeiro pedido.
     module.exports = app;
 }

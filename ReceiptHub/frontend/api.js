@@ -4,7 +4,7 @@
 
 const USE_MOCK = false;
 // file://, localhost ou 127.0.0.1 → aponta para o servidor local na porta 5000.
-// Qualquer outro host (Vercel, produção) → rotas relativas ao mesmo domínio.
+// Qualquer outro host (Netlify, produção) → rotas relativas ao mesmo domínio.
 const API_BASE_URL = (
     window.location.protocol === 'file:' ||
     window.location.hostname === 'localhost' ||
