@@ -78,7 +78,11 @@ h4,
 }
 
 .brand-icon {
-    font-size: 1.3rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    object-fit: contain;
+    border-radius: 4px;
+    vertical-align: middle;
 }
 
 .top-strip .btn-outline {
@@ -348,7 +352,10 @@ h4,
 }
 
 .login-brand-icon {
-    font-size: 3rem;
+    width: 4.5rem;
+    height: 4.5rem;
+    object-fit: contain;
+    border-radius: 14px;
     animation: floatIcon 3.5s ease-in-out infinite;
 }
 
