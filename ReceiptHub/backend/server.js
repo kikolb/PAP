@@ -7,9 +7,14 @@ require('dotenv').config();
 
 const { initDatabase, query, run, get } = require('./database');
 
-// SQLite guarda CURRENT_TIMESTAMP como "YYYY-MM-DD HH:MM:SS" (UTC, sem "T").
-// O frontend espera ISO 8601 (com "T") para poder fazer split('T')[0] nos filtros de data.
-const toIsoDate = (sqliteTimestamp) => sqliteTimestamp ? sqliteTimestamp.replace(' ', 'T') + 'Z' : sqliteTimestamp;
+// SQLite guarda CURRENT_TIMESTAMP como "YYYY-MM-DD HH:MM:SS" (UTC, sem "T"), enquanto o
+// driver pg devolve colunas TIMESTAMP já como objetos Date.
+// O frontend espera sempre ISO 8601 (com "T") para poder fazer split('T')[0] nos filtros de data.
+const toIsoDate = (timestamp) => {
+    if (!timestamp) return timestamp;
+    if (timestamp instanceof Date) return timestamp.toISOString();
+    return timestamp.replace(' ', 'T') + 'Z';
+};
 
 const app = express();
 const PORT = process.env.PORT || 5000;
